@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import confetti from 'canvas-confetti';
 import { DUMMY_CANDIDATES } from '../constants/electionData';
 import type { Screen } from '../App';
-import { CheckCircle2, Sparkles } from 'lucide-react';
+import { CheckCircle2, Sparkles, ArrowLeft } from 'lucide-react';
 
 interface EVMSimulatorProps {
   setCurrentScreen: React.Dispatch<React.SetStateAction<Screen>>;
@@ -25,6 +26,13 @@ export default function EVMSimulator({ setCurrentScreen, sendMessage, retrieveAn
       setShowVVPAT(false);
       setShowSignature(true);
       
+      confetti({
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ['#FF9933', '#FFFFFF', '#138808', '#000080'] // Indian flag colors
+      });
+      
       // Fetch AI Debrief in background
       setLoadingDebrief(true);
       retrieveAndAnswer("What happens inside an EVM, is the ballot secret, and what does a VVPAT slip do?")
@@ -39,11 +47,21 @@ export default function EVMSimulator({ setCurrentScreen, sendMessage, retrieveAn
   const votedCandidate = DUMMY_CANDIDATES.find(c => c.id === selectedCandidate);
 
   return (
-    <div className="w-full max-w-lg mx-auto relative z-0">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-[var(--color-navy-blue)]">Electronic Voting Machine (Mock)</h2>
-        <p className="text-gray-600">Press the blue button next to your chosen candidate.</p>
+    <div className="fixed inset-0 z-50 bg-gray-50 flex flex-col overflow-y-auto">
+      <div className="p-4 bg-white shadow-sm flex items-center">
+        <button 
+          onClick={() => setCurrentScreen('journey')}
+          className="text-sm font-medium text-gray-600 hover:text-gray-900 flex items-center gap-1"
+        >
+          <ArrowLeft size={16} /> Back to Journey
+        </button>
       </div>
+
+      <div className="w-full max-w-lg mx-auto relative z-0 py-8 px-4 flex-1">
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-[var(--color-navy-blue)]">Electronic Voting Machine (Mock)</h2>
+          <p className="text-gray-600">Press the blue button next to your chosen candidate.</p>
+        </div>
 
       {/* EVM Machine Frame */}
       <div className="bg-gray-100 p-6 rounded-3xl border-[12px] border-[var(--color-navy-blue)] shadow-2xl relative">
@@ -138,6 +156,7 @@ export default function EVMSimulator({ setCurrentScreen, sendMessage, retrieveAn
           100% { transform: translateY(100%); opacity: 0; }
         }
       `}</style>
+      </div>
     </div>
   );
 }

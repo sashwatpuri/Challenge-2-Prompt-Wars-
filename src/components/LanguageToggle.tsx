@@ -1,31 +1,27 @@
-import type { Language } from '../App';
 import { Languages } from 'lucide-react';
+import { useLanguage, type SupportedLanguage } from '../context/LanguageContext';
 
-interface LanguageToggleProps {
-  language: Language;
-  setLanguage: (lang: Language) => void;
-}
+export default function LanguageToggle() {
+  const { language, setLanguage } = useLanguage();
 
-export default function LanguageToggle({ language, setLanguage }: LanguageToggleProps) {
-  const toggle = () => {
-    if (language === 'en') {
-      alert("Hindi AI Translation is 'Coming Soon' for the MVP! UI will stay in English for now.");
-      setLanguage('hi');
-    } else {
-      setLanguage('en');
-    }
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setLanguage(e.target.value as SupportedLanguage);
   };
 
   return (
-    <button 
-      onClick={toggle}
-      className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors text-sm font-medium"
-      aria-label="Toggle language"
-    >
+    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-200 bg-white shadow-sm">
       <Languages size={16} className="text-[var(--color-saffron)]" />
-      <span className={language === 'en' ? 'text-gray-900 font-bold' : 'text-gray-500'}>EN</span>
-      <span className="text-gray-300">|</span>
-      <span className={language === 'hi' ? 'text-gray-900 font-bold' : 'text-gray-500'}>HI</span>
-    </button>
+      <select 
+        value={language}
+        onChange={handleLanguageChange}
+        className="bg-transparent text-sm font-medium text-gray-700 outline-none cursor-pointer"
+        aria-label="Toggle language"
+      >
+        <option value="en">English</option>
+        <option value="hi">हिंदी (Hindi)</option>
+        <option value="ta">தமிழ் (Tamil)</option>
+        <option value="mr">मराठी (Marathi)</option>
+      </select>
+    </div>
   );
 }

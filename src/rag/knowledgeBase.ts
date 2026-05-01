@@ -138,7 +138,7 @@ export const knowledgeBase: KnowledgeChunk[] = [
     id: 'postal_ballot',
     topic: 'voting_methods',
     keywords: ['postal ballot', 'absentee', 'post', 'service voter', 'army', '80 years', 'disability'],
-    content: 'Postal ballots are available for specific groups: service voters (armed forces), election duty staff, preventive detainees, senior citizens above 85 years, and persons with disabilities (PwD). They receive ballot papers to cast their vote without visiting the booth.',
+    content: 'Postal ballots are available for specific groups: service voters (armed forces), election duty staff, preventive detainees, senior citizens above 80 years, and persons with disabilities (PwD). They receive ballot papers to cast their vote without visiting the booth.',
     source: 'Election Commission of India'
   },
   // Polling Day
@@ -170,5 +170,156 @@ export const knowledgeBase: KnowledgeChunk[] = [
     keywords: ['nota', 'none of the above', 'reject', 'don\'t like anyone'],
     content: 'NOTA (None of the Above) is an option on the EVM. If a voter does not find any candidate suitable, they can press the NOTA button. However, NOTA does not impact the election outcome; the candidate with the most votes still wins, even if NOTA gets higher votes.',
     source: 'Election Commission of India'
-  }
+  },
+  // Additional Forms & Tools
+  {
+    id: 'register_form7',
+    topic: 'registration',
+    keywords: ['form 7', 'delete', 'remove name', 'death', 'shifted'],
+    content: 'Form 7 is used for objecting to a proposed inclusion of name, or for seeking deletion of an existing name in the electoral roll. This is typically used when a voter has shifted permanently, or in the event of a voter\'s death.',
+    source: 'Election Commission of India'
+  },
+  {
+    id: 'kyc_app',
+    topic: 'candidate_info',
+    keywords: ['kyc app', 'know your candidate', 'criminal background', 'assets', 'affidavit'],
+    content: 'The Election Commission provides the KYC (Know Your Candidate) app. Voters can use it to view details about contesting candidates, including their criminal antecedents, financial assets, liabilities, and educational qualifications as declared in their affidavits.',
+    source: 'Election Commission of India'
+  },
+  {
+    id: 'ero_functions',
+    topic: 'administration',
+    keywords: ['ero', 'electoral registration officer', 'state portal', 'ceomaharashtra', 'ceo'],
+    content: 'The Electoral Registration Officer (ERO) is responsible for the preparation and revision of the electoral roll for a specific constituency. Voters can contact their local ERO or visit their State CEO (Chief Electoral Officer) portal for local administrative voting queries.',
+    source: 'Election Commission of India'
+  },
+// ── VOTING RIGHTS & EDGE CASES ───────────────────────────────
+
+{
+  id: 'voting_queue_rule',
+  topic: 'polling_day',
+  keywords: ['queue', 'line', 'closing time', '5pm', '6pm', 'still vote', 'booth closes', 'last minute'],
+  content: 'If you are standing in the queue at your polling station when polling time ends, you are legally entitled to cast your vote. The Presiding Officer must allow everyone who was in the queue before closing time to vote. Do not leave the queue.',
+  source: 'Election Commission of India'
+},
+{
+  id: 'voting_first_time',
+  topic: 'polling_day',
+  keywords: ['first time voter', 'first vote', 'nervous', 'new voter', 'what to expect', 'beginner'],
+  content: 'As a first-time voter, here is what to expect: Carry your Voter ID or any of the 12 accepted photo IDs. Locate your polling booth on your Voter Slip or on voterportal.eci.gov.in. At the booth, officials will verify your name, mark your finger with ink, and guide you to the EVM.',
+  source: 'Election Commission of India'
+},
+{
+  id: 'voter_slip',
+  topic: 'polling_day',
+  keywords: ['voter slip', 'polling slip', 'booth slip', 'slip', 'where is my booth', 'which booth'],
+  content: 'A Voter Information Slip is distributed by BLOs (Booth Level Officers) before elections. It contains your name, serial number, polling booth address, and booth number. You can also download it from the Voter Portal. It is not mandatory to carry it, but it speeds up the verification process.',
+  source: 'Election Commission of India'
+},
+{
+  id: 'tender_vote',
+  topic: 'polling_day',
+  keywords: ['someone already voted', 'impersonation', 'my vote was cast', 'tender ballot', 'duplicate vote'],
+  content: 'If you arrive at the booth and are told someone has already voted in your name, you can request a Tender Vote (also called a Tendered Ballot). The Presiding Officer will record your vote separately. Such cases are investigated and impersonation is a criminal offence.',
+  source: 'Election Commission of India'
+},
+
+// ── REGISTRATION EDGE CASES ──────────────────────────────────
+
+{
+  id: 'register_deadline',
+  topic: 'registration',
+  keywords: ['deadline', 'last date', 'when to apply', 'cutoff', 'registration close', 'how long'],
+  content: 'Voter registration applications (Form 6) can be submitted throughout the year. However, to vote in a specific election, your name must be on the published electoral roll before that election is announced. The ECI publishes a summary revision of the roll, typically with a cutoff of January 1st each year.',
+  source: 'Election Commission of India'
+},
+{
+  id: 'register_address_proof',
+  topic: 'registration',
+  keywords: ['address proof', 'documents needed', 'what documents', 'proof of address', 'proof of age', 'birth certificate'],
+  content: 'For Form 6, accepted age proofs include birth certificate, class 10 mark sheet, or passport. Accepted address proofs include Aadhaar card, bank passbook with photo, electricity bill, or a post office passbook. All documents must be self-attested copies.',
+  source: 'Election Commission of India'
+},
+{
+  id: 'form8a_shifting',
+  topic: 'registration',
+  keywords: ['shifted constituency', 'new city', 'moved', 'transfer voter id', 'new state', 'form 8a'],
+  content: 'If you have permanently shifted to a new constituency (within the same state or another state), you must file Form 8A for transposition of your name. You will be deleted from the old constituency roll and added to the new one. File Form 6 if shifting to a completely new state.',
+  source: 'Election Commission of India'
+},
+
+// ── ELECTION INTEGRITY & AWARENESS ──────────────────────────
+
+{
+  id: 'bribery_reporting',
+  topic: 'election_integrity',
+  keywords: ['bribe', 'money', 'cash for vote', 'gift', 'report', 'cvigil', 'complaint'],
+  content: 'Accepting money or gifts in exchange for votes is illegal. If you witness vote-buying, bribery, or any election malpractice, you can report it instantly using the cVIGIL app developed by the ECI. Reports are geo-tagged and must be addressed within 100 minutes.',
+  source: 'Election Commission of India'
+},
+{
+  id: 'election_offences',
+  topic: 'election_integrity',
+  keywords: ['illegal', 'offence', 'fake voter', 'booth capturing', 'crime', 'punishment', 'imprisonment'],
+  content: 'Election offences include impersonation, booth capturing, bribing voters, and making false declarations in nomination papers. These are punishable under the Representation of the People Act, 1951, with imprisonment of up to 1-2 years depending on the offence.',
+  source: 'Representation of the People Act, 1951'
+},
+{
+  id: 'paid_news',
+  topic: 'election_integrity',
+  keywords: ['fake news', 'paid news', 'media', 'advertisement', 'misleading', 'social media'],
+  content: 'Paid news — political content published as editorial without disclosure — is prohibited during elections. The ECI\'s Media Certification and Monitoring Committee (MCMC) monitors this. Political advertisements on social media must also be pre-certified by the MCMC.',
+  source: 'Election Commission of India'
+},
+
+// ── RESULTS & POST-ELECTION ──────────────────────────────────
+
+{
+  id: 'counting_day',
+  topic: 'results',
+  keywords: ['counting', 'result day', 'when results', 'votes counted', 'how counting works', 'strong room'],
+  content: 'After polling, EVMs are sealed and stored in strong rooms under multi-layer security. On counting day, EVMs are unsealed in the presence of candidates and their counting agents. Votes are tallied round by round, and results are declared by the Returning Officer.',
+  source: 'Election Commission of India'
+},
+{
+  id: 'election_recount',
+  topic: 'results',
+  keywords: ['recount', 'dispute', 'margin', 'close result', 'challenge result', 'election petition'],
+  content: 'A losing candidate can request a recount if the margin is very narrow, subject to the Returning Officer\'s discretion. If a candidate believes the result is wrong, they can file an Election Petition in the High Court within 45 days of the result declaration.',
+  source: 'Representation of the People Act, 1951'
+},
+
+// ── ACCESSIBILITY ─────────────────────────────────────────────
+
+{
+  id: 'pwd_voting',
+  topic: 'accessibility',
+  keywords: ['disabled', 'wheelchair', 'pwd', 'differently abled', 'blind', 'help inside booth', 'companion'],
+  content: 'Persons with Disabilities (PwD) voters are entitled to priority queuing, wheelchair access, and ground-floor polling stations. A blind voter or voter with physical disability can bring a companion of their choice into the voting compartment to assist them. Braille EVMs are also deployed.',
+  source: 'Election Commission of India'
+},
+{
+  id: 'senior_citizen_voting',
+  topic: 'accessibility',
+  keywords: ['elderly', 'old age', 'senior', 'above 80', 'home voting', 'postal ballot elderly'],
+  content: 'Senior citizens above 80 years of age are eligible for postal ballot facility. They can also opt to vote from home (Home Voting scheme) where a polling team visits their residence in certain notified elections. They must pre-register for this facility.',
+  source: 'Election Commission of India'
+},
+
+// ── GOVERNMENT SCHEME LINKS ──────────────────────────────────
+
+{
+  id: 'voter_portal_links',
+  topic: 'resources',
+  keywords: ['website', 'link', 'portal', 'online', 'nvsp', 'where to apply', 'url'],
+  content: 'Key official resources: Voter Portal — voterportal.eci.gov.in (registration, e-EPIC download, booth search). NVSP — nvsp.in (older portal, still functional). Voter Helpline — 1950. cVIGIL App — for reporting violations. KYC App — for candidate background checks.',
+  source: 'Election Commission of India'
+},
+{
+  id: 'sveep',
+  topic: 'voter_awareness',
+  keywords: ['awareness', 'education', 'sveep', 'campaign', 'voter education', 'participation'],
+  content: 'SVEEP (Systematic Voters\' Education and Electoral Participation) is ECI\'s flagship programme to educate citizens and increase voter turnout. It targets youth voters, women voters, urban voters, and persons with disabilities through campaigns, social media drives, and school/college outreach.',
+  source: 'Election Commission of India'
+}
 ];

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { JourneyStep, Screen } from '../App';
-import { CheckCircle2, Circle, ChevronDown, ChevronUp, Sparkles, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Circle, ChevronDown, ChevronUp, Sparkles, ArrowRight, FileText, MapPin, Share2 } from 'lucide-react';
 
 interface JourneyProps {
   journeySteps: JourneyStep[];
@@ -35,6 +35,11 @@ export default function Journey({ journeySteps, setJourneySteps, setCurrentScree
       setExplanations(prev => ({ ...prev, [step.id]: explanation }));
       setLoadingExplanation(null);
     }
+  };
+
+  const handleShare = () => {
+    const text = `Here is my voting roadmap from VoteWise:\n` + journeySteps.map((s, i) => `${i+1}. ${s.title} ${s.completed ? '✅' : '⏳'}`).join('\n');
+    window.open(`whatsapp://send?text=${encodeURIComponent(text)}`);
   };
 
   return (
@@ -89,7 +94,28 @@ export default function Journey({ journeySteps, setJourneySteps, setCurrentScree
         </div>
       </div>
 
-      <div className="flex justify-center mt-8">
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <button 
+          onClick={() => setCurrentScreen('formWizard')}
+          className="flex items-center justify-center gap-2 px-4 py-3 bg-white text-[var(--color-india-blue)] border-2 border-[var(--color-india-blue)] rounded-xl font-bold hover:bg-blue-50 transition-colors shadow-sm"
+        >
+          <FileText size={18} /> Prepare Form 6
+        </button>
+        <button 
+          onClick={() => setCurrentScreen('boothLocator')}
+          className="flex items-center justify-center gap-2 px-4 py-3 bg-white text-[var(--color-saffron)] border-2 border-[var(--color-saffron)] rounded-xl font-bold hover:bg-orange-50 transition-colors shadow-sm"
+        >
+          <MapPin size={18} /> Find My Booth
+        </button>
+        <button 
+          onClick={handleShare}
+          className="flex items-center justify-center gap-2 px-4 py-3 bg-white text-[var(--color-india-green)] border-2 border-[var(--color-india-green)] rounded-xl font-bold hover:bg-green-50 transition-colors shadow-sm"
+        >
+          <Share2 size={18} /> Share Roadmap
+        </button>
+      </div>
+
+      <div className="flex justify-center mt-6">
         <button 
           onClick={() => setCurrentScreen('evm')}
           className="flex items-center gap-2 px-8 py-4 bg-[var(--color-navy-blue)] text-white rounded-full font-bold shadow-lg hover:bg-blue-900 transition-colors transform hover:scale-105"

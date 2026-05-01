@@ -1,18 +1,43 @@
 import { useRef, useCallback } from 'react';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { Content } from '@google/generative-ai';
 import { retrieveChunks } from '../rag/retriever';
+import { useLanguage } from '../context/LanguageContext';
+import type { SupportedLanguage } from '../context/LanguageContext';
 
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
-const genAI = new GoogleGenerativeAI(apiKey);
+// NOTE: No API keys are imported here. All keys live server-side in the /api/gemini.ts proxy.
+// In development (npm run dev), Vite proxies /api → the serverless function via vercel dev,
+// or you can set VITE_PROXY_URL='' to use the local Vercel dev server.
 
-const SYSTEM_INSTRUCTION = `You are VoteWise, India's friendly election guide.
+const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
+  en: 'English',
+  hi: 'Hindi',
+  ta: 'Tamil',
+  mr: 'Marathi',
+};
+
+const CHAT_MODEL = 'gemini-2.0-flash-exp';
+const RAG_MODEL = 'gemini-2.5-flash';
+
+const SYSTEM_INSTRUCTION = (lang: SupportedLanguage) => `
+You are VoteWise, India's friendly election guide.
 Rules:
+- ALWAYS respond in ${LANGUAGE_NAMES[lang]} only. Do not mix languages.
+- If the user writes in any language, still reply in ${LANGUAGE_NAMES[lang]}.
 - Be conversational, warm, and encouraging.
-- Always address the user directly.
 - Use short paragraphs, maximum 3 sentences per response.
+- For Hindi: use simple, everyday Hindi (not formal Sanskritized Hindi).
+- For Tamil: use common spoken Tamil, avoid archaic vocabulary.
+- For Marathi: use standard Marathi, accessible to rural and urban voters.
 - Guide the Indian citizen through their voting journey.
 `;
+
+const RAG_INSTRUCTION = (lang: SupportedLanguage) =>
+  `You are VoteWise, an Indian election assistant.
+   Answer ONLY using the context below.
+   ALWAYS respond in ${LANGUAGE_NAMES[lang]}.
+   If context is insufficient, say the equivalent of
+   "Please check eci.gov.in for more details." in ${LANGUAGE_NAMES[lang]}.
+   Keep answers under 3 sentences. Be warm and direct.`;
 
 function ensureComplete(text: string): string {
   const trimmed = text.trim();
@@ -20,94 +45,88 @@ function ensureComplete(text: string): string {
   return trimmed;
 }
 
+/**
+ * Calls the /api/gemini serverless proxy, which keeps API keys server-side.
+ */
+async function callProxy(payload: {
+  keyType: 'chat' | 'rag';
+  model: string;
+  systemInstruction: string;
+  history: Content[];
+  userMessage: string;
+  retrievedContext?: string;
+}): Promise<string> {
+  const response = await fetch('/api/gemini', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ error: response.statusText }));
+    throw Object.assign(new Error(err.error ?? 'Proxy error'), { status: response.status });
+  }
+
+  const data = await response.json();
+  return data.text ?? '';
+}
+
 export function useGemini() {
   const historyRef = useRef<Content[]>([]);
+  const { language } = useLanguage();
 
   const sendMessage = useCallback(async (message: string, isJourneyGeneration = false) => {
-    if (!apiKey) return 'API Key is missing. Please configure VITE_GEMINI_API_KEY.';
+    try {
+      const historySnapshot = [...historyRef.current];
+      const text = await callProxy({
+        keyType: 'chat',
+        model: CHAT_MODEL,
+        systemInstruction: SYSTEM_INSTRUCTION(language),
+        history: historySnapshot,
+        userMessage: message,
+      });
 
-    const fallbackModels = ['gemini-3.1-flash-live-preview', 'gemini-2.5-flash'];
-    let lastError: any = null;
-
-    for (const modelName of fallbackModels) {
-      try {
-        const model = genAI.getGenerativeModel({
-          model: modelName,
-          systemInstruction: SYSTEM_INSTRUCTION,
-        });
-
-        const userContent: Content = { role: 'user', parts: [{ text: message }] };
-
-        // Snapshot history BEFORE this turn
-        const historySnapshot = [...historyRef.current];
-
-        const chat = model.startChat({
-          history: historySnapshot,
-          generationConfig: {
-            maxOutputTokens: isJourneyGeneration ? 600 : 400,
-          },
-        });
-
-        const result = await chat.sendMessage(message);
-        const responseText = result.response.text();
-
-        // Push both turns AFTER success
-        historyRef.current.push(userContent, {
-          role: 'model',
-          parts: [{ text: responseText }],
-        });
-
-        return ensureComplete(responseText);
-      } catch (error: any) {
-        console.warn(`Gemini API error with model ${modelName}:`, error);
-        lastError = error;
-      }
+      const responseText = ensureComplete(text);
+      historyRef.current.push(
+        { role: 'user', parts: [{ text: message }] },
+        { role: 'model', parts: [{ text: responseText }] }
+      );
+      return responseText;
+    } catch (error: any) {
+      console.warn('Gemini chat proxy error:', error);
+      if (error.status === 429) return 'Too many requests — please wait a moment.';
+      if (error.status === 503) return 'Servers busy — please try again shortly.';
+      return 'Error connecting to AI. Please try again.';
     }
-
-    if (lastError?.message?.includes('429')) return 'Too many requests — please wait a moment.';
-    if (lastError?.message?.includes('503')) return 'Servers busy — please try again shortly.';
-    return 'Error connecting to AI. Please try again.';
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [language]);
 
   const retrieveAndAnswer = useCallback(async (userQuery: string): Promise<string> => {
-    if (!apiKey) return 'API Key is missing.';
-
     const chunks = retrieveChunks(userQuery, 3);
     if (chunks.length === 0) {
       return "I can only help with Indian voting questions. Try asking about registering, EVMs, or election procedures!";
     }
 
-    const fallbackModels = ['gemini-3.1-flash-live-preview', 'gemini-2.5-flash'];
-    let lastError: any = null;
+    const contextText = chunks.map(c => c.content).join('\n\n');
 
-    for (const modelName of fallbackModels) {
-      try {
-        const ragInstruction = `You are VoteWise, an Indian election assistant. Answer ONLY using the context below. If context is insufficient, say: "Please check eci.gov.in for more details." Keep answers under 3 sentences. Be warm and direct.`;
-
-        const model = genAI.getGenerativeModel({
-          model: modelName,
-          systemInstruction: ragInstruction,
-        });
-
-        const contextText = chunks.map(c => c.content).join('\n\n');
-        const prompt = `Context:\n${contextText}\n\nQuestion: ${userQuery}`;
-
-        const result = await model.generateContent({
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 350 },
-        });
-
-        return ensureComplete(result.response.text());
-      } catch (error: any) {
-        console.warn(`Gemini RAG error with model ${modelName}:`, error);
-        lastError = error;
-      }
+    try {
+      const text = await callProxy({
+        keyType: 'rag',
+        model: RAG_MODEL,
+        systemInstruction: RAG_INSTRUCTION(language),
+        history: [],
+        userMessage: userQuery,
+        retrievedContext: contextText,
+      });
+      return ensureComplete(text);
+    } catch (error: any) {
+      console.warn('Gemini RAG proxy error:', error);
+      if (error.status === 429) return 'Too many requests — please wait a moment.';
+      if (error.status === 503) return 'Servers busy — please try again shortly.';
+      return 'Error connecting to AI. Please try again.';
     }
-
-    if (lastError?.message?.includes('429')) return 'Too many requests — please wait a moment.';
-    if (lastError?.message?.includes('503')) return 'Servers busy — please try again shortly.';
-    return 'Error connecting to AI. Please try again.';
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [language]);
 
   const clearHistory = useCallback(() => { historyRef.current = []; }, []);
 

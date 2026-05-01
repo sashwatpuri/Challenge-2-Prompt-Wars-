@@ -1,7 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  --color-saffron: #FF9933;
+  /* WCAG AA compliant saffron (#C47A00 = ~5.4:1 on white) – use for text, buttons, interactive elements */
+  --color-saffron: #C47A00;
+  /* Decorative only – do NOT use for text; kept for confetti, flag illustrations */
+  --color-saffron-vivid: #FF9933;
   --color-deep-green: #138808;
   --color-navy-blue: #000080;
   --color-off-white: #FAFAF7;
