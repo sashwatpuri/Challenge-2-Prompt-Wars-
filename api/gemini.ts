@@ -23,6 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       : process.env.GEMINI_API_KEY_CHAT;
 
   if (!apiKey) {
+    console.error(`[Gemini Proxy] Missing API key for ${keyType}`);
     return res.status(500).json({ error: 'API key not configured on server.' });
   }
 
@@ -64,6 +65,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (!response.ok) {
     const errorText = await response.text();
+    console.error(`[Gemini Proxy] Google API error (${response.status}):`, errorText);
     return res.status(response.status).json({ error: errorText });
   }
 

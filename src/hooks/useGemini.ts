@@ -16,7 +16,7 @@ const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
 };
 
 const CHAT_MODEL = 'gemini-2.0-flash-exp';
-const RAG_MODEL = 'gemini-2.5-flash';
+const RAG_MODEL = 'gemini-1.5-flash';
 
 const SYSTEM_INSTRUCTION = (lang: SupportedLanguage) => `
 You are VoteWise, India's friendly election guide.
@@ -46,8 +46,14 @@ function ensureComplete(text: string): string {
 }
 
 /**
- * Calls the /api/gemini serverless proxy, which keeps API keys server-side.
+ * In development (npm run dev / Vite), we call the Gemini REST API directly
+ * using the VITE_GEMINI_API_KEY env var (visible to the browser, dev-only).
+ * In production (Vercel), we call the /api/gemini serverless proxy so the key
+ * never leaves the server.
  */
+const IS_DEV = import.meta.env.DEV;
+const DEV_API_KEY = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
+
 async function callProxy(payload: {
   keyType: 'chat' | 'rag';
   model: string;
@@ -56,6 +62,35 @@ async function callProxy(payload: {
   userMessage: string;
   retrievedContext?: string;
 }): Promise<string> {
+  const { keyType, model, systemInstruction, history, userMessage, retrievedContext } = payload;
+
+  // ── DEV mode: hit the Gemini REST API directly ──────────────────────────
+  if (IS_DEV) {
+    if (!DEV_API_KEY) {
+      throw new Error('Missing VITE_GEMINI_API_KEY in .env for local development.');
+    }
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${DEV_API_KEY}`;
+    const body = {
+      system_instruction: { parts: [{ text: systemInstruction }] },
+      contents: [
+        ...history,
+        {
+          role: 'user',
+          parts: [{ text: retrievedContext ? `Context:\n${retrievedContext}\n\nQuestion: ${userMessage}` : userMessage }],
+        },
+      ],
+      generationConfig: { maxOutputTokens: 2048, temperature: keyType === 'rag' ? 0.2 : 0.7 },
+    };
+    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }));
+      throw Object.assign(new Error(err.error?.message ?? 'Gemini API error'), { status: res.status });
+    }
+    const data = await res.json();
+    return data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+  }
+
+  // ── PRODUCTION mode: use the secure serverless proxy ────────────────────
   const response = await fetch('/api/gemini', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
