@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { MapPin, ExternalLink, Search } from 'lucide-react';
 

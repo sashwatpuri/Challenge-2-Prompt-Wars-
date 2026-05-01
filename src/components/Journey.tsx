@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { JourneyStep, Screen } from '../App';
 import { CheckCircle2, Circle, ChevronDown, ChevronUp, Sparkles, ArrowRight, FileText, MapPin, Share2 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface JourneyProps {
   journeySteps: JourneyStep[];
@@ -10,10 +11,11 @@ interface JourneyProps {
   retrieveAndAnswer: (query: string) => Promise<string>;
 }
 
-export default function Journey({ journeySteps, setJourneySteps, setCurrentScreen, sendMessage, retrieveAndAnswer }: JourneyProps) {
+export default function Journey({ journeySteps, setJourneySteps, setCurrentScreen, sendMessage: _sendMessage, retrieveAndAnswer }: JourneyProps) {
   const [expandedStep, setExpandedStep] = useState<string | null>(null);
   const [explanations, setExplanations] = useState<Record<string, string>>({});
   const [loadingExplanation, setLoadingExplanation] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   const toggleStep = (id: string) => {
     setJourneySteps(steps => 
@@ -45,8 +47,8 @@ export default function Journey({ journeySteps, setJourneySteps, setCurrentScree
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6">
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <h2 className="text-2xl font-bold text-[var(--color-navy-blue)] mb-2">Your Personal Voting Journey</h2>
-        <p className="text-gray-600 mb-6">Complete these steps to cast your vote successfully.</p>
+        <h2 className="text-2xl font-bold text-[var(--color-navy-blue)] mb-2">{t('votingJourneyTitle')}</h2>
+        <p className="text-gray-600 mb-6">{t('votingJourneySubtitle')}</p>
         
         <div className="space-y-4">
           {journeySteps.map((step, index) => (
@@ -61,7 +63,7 @@ export default function Journey({ journeySteps, setJourneySteps, setCurrentScree
                 
                 <div className="flex-1">
                   <h3 className={`font-semibold text-lg ${step.completed ? 'text-[var(--color-deep-green)] line-through opacity-70' : 'text-gray-900'}`}>
-                    Step {index + 1}: {step.title}
+                    {t('stepPrefix')} {index + 1}: {step.title}
                   </h3>
                   <p className={`text-sm mt-1 ${step.completed ? 'text-green-700 opacity-70' : 'text-gray-600'}`}>
                     {step.description}
@@ -72,7 +74,7 @@ export default function Journey({ journeySteps, setJourneySteps, setCurrentScree
                     className="mt-3 flex items-center gap-1 text-sm font-medium text-[var(--color-saffron)] hover:text-orange-600 transition-colors"
                   >
                     <Sparkles size={16} /> 
-                    {expandedStep === step.id ? 'Hide explanation' : 'AI: Explain this'}
+                    {expandedStep === step.id ? t('hideExplain') : t('explainCta')}
                     {expandedStep === step.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                   </button>
                   
@@ -120,7 +122,7 @@ export default function Journey({ journeySteps, setJourneySteps, setCurrentScree
           onClick={() => setCurrentScreen('evm')}
           className="flex items-center gap-2 px-8 py-4 bg-[var(--color-navy-blue)] text-white rounded-full font-bold shadow-lg hover:bg-blue-900 transition-colors transform hover:scale-105"
         >
-          Proceed to EVM Simulator <ArrowRight size={20} />
+          {t('proceedEvm')} <ArrowRight size={20} />
         </button>
       </div>
     </div>

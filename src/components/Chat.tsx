@@ -84,7 +84,7 @@ export default function Chat({
     setIsTyping(true);
 
     const hasId = profile.hasVoterId;
-    const isUnderage = profile.age < 18;
+    const isUnderage = (profile.age ?? 0) < 18;
     
     let steps: JourneyStep[];
     

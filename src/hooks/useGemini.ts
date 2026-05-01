@@ -15,7 +15,7 @@ const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
   mr: 'Marathi',
 };
 
-const CHAT_MODEL = 'gemini-2.0-flash-exp';
+const CHAT_MODEL = 'gemini-1.5-flash';
 const RAG_MODEL = 'gemini-1.5-flash';
 
 const SYSTEM_INSTRUCTION = (lang: SupportedLanguage) => `
@@ -79,12 +79,13 @@ async function callProxy(payload: {
           parts: [{ text: retrievedContext ? `Context:\n${retrievedContext}\n\nQuestion: ${userMessage}` : userMessage }],
         },
       ],
-      generationConfig: { maxOutputTokens: 2048, temperature: keyType === 'rag' ? 0.2 : 0.7 },
+      generationConfig: { maxOutputTokens: 1024, temperature: keyType === 'rag' ? 0.2 : 0.7 },
     };
     const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ error: res.statusText }));
-      throw Object.assign(new Error(err.error?.message ?? 'Gemini API error'), { status: res.status });
+      const errBody = await res.text();
+      console.error('[Gemini Dev] API error:', res.status, errBody);
+      throw Object.assign(new Error(errBody), { status: res.status });
     }
     const data = await res.json();
     return data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
@@ -110,7 +111,7 @@ export function useGemini() {
   const historyRef = useRef<Content[]>([]);
   const { language } = useLanguage();
 
-  const sendMessage = useCallback(async (message: string, isJourneyGeneration = false) => {
+  const sendMessage = useCallback(async (message: string, _isJourneyGeneration = false) => {
     try {
       const historySnapshot = [...historyRef.current];
       const text = await callProxy({

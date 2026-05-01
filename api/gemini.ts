@@ -39,7 +39,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
     ],
     generationConfig: {
-      maxOutputTokens: 2048,
+      maxOutputTokens: 1024,
       temperature: keyType === 'rag' ? 0.2 : 0.7,
     },
   });

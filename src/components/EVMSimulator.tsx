@@ -10,7 +10,7 @@ interface EVMSimulatorProps {
   retrieveAndAnswer: (query: string) => Promise<string>;
 }
 
-export default function EVMSimulator({ setCurrentScreen, sendMessage, retrieveAndAnswer }: EVMSimulatorProps) {
+export default function EVMSimulator({ setCurrentScreen, sendMessage: _sendMessage, retrieveAndAnswer }: EVMSimulatorProps) {
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
   const [showVVPAT, setShowVVPAT] = useState(false);
   const [showSignature, setShowSignature] = useState(false);

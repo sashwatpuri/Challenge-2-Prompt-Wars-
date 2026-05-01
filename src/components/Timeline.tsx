@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { TIMELINE_PHASES, CURRENT_TIMELINE_PHASE } from '../constants/electionData';
 import { CheckCircle2, Circle, Clock, Sparkles } from 'lucide-react';
 import { useGemini } from '../hooks/useGemini';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function Timeline() {
   const [activePhase, setActivePhase] = useState<string | null>(null);
   const [narration, setNarration] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { retrieveAndAnswer } = useGemini();
+  const { t } = useLanguage();
 
   const handlePhaseClick = async (phase: typeof TIMELINE_PHASES[0]) => {
     if (activePhase === phase.id) {
@@ -28,7 +30,7 @@ export default function Timeline() {
   return (
     <div className="w-full bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
       <h3 className="text-lg font-bold text-[var(--color-navy-blue)] mb-6 flex items-center gap-2">
-        <Clock size={20} /> Election Timeline
+        <Clock size={20} /> {t('electionTimeline')}
       </h3>
       
       <div className="relative">
@@ -64,7 +66,7 @@ export default function Timeline() {
                   </p>
                   {isCurrent && (
                     <span className="text-[10px] uppercase tracking-wider text-[var(--color-saffron)] font-bold mt-1 block">
-                      You are here
+                      {t('youAreHere')}
                     </span>
                   )}
                 </div>

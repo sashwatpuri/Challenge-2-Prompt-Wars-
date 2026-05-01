@@ -45,7 +45,7 @@ function App() {
   return (
     <div className="min-h-screen bg-[var(--color-off-white)] text-gray-900 flex flex-col font-sans">
       <header className="p-4 border-b border-gray-200 flex justify-between items-center bg-white shadow-sm sticky top-0 z-10">
-        <h1 className="text-2xl font-bold text-[var(--color-saffron)]">{t('app.title')}</h1>
+        <h1 className="text-2xl font-bold text-[var(--color-saffron)]">{t('appName')}</h1>
         <LanguageToggle />
       </header>
 

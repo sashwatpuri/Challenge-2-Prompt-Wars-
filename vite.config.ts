@@ -11,26 +11,42 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/generativelanguage\.googleapis\.com\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'gemini-cache',
+              networkTimeoutSeconds: 10,
+              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 },
+            },
+          },
+        ],
+      },
       manifest: {
         name: 'VoteWise',
         short_name: 'VoteWise',
-        description: 'Your personal AI-powered election guide',
-        theme_color: '#ffffff',
+        description: "India's AI-powered election guide",
+        theme_color: '#C47A00',
         background_color: '#ffffff',
         display: 'standalone',
         icons: [
           {
             src: 'pwa-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
           },
           {
             src: 'pwa-512x512.png',
             sizes: '512x512',
-            type: 'image/png'
-          }
-        ]
-      }
+            type: 'image/png',
+            purpose: 'any maskable',
+          },
+        ],
+      },
     }),
   ],
 })
+
