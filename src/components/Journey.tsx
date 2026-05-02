@@ -7,11 +7,10 @@ interface JourneyProps {
   journeySteps: JourneyStep[];
   setJourneySteps: React.Dispatch<React.SetStateAction<JourneyStep[]>>;
   setCurrentScreen: React.Dispatch<React.SetStateAction<Screen>>;
-  sendMessage: (msg: string, isJourney: boolean) => Promise<string>;
   retrieveAndAnswer: (query: string) => Promise<string>;
 }
 
-export default function Journey({ journeySteps, setJourneySteps, setCurrentScreen, sendMessage: _sendMessage, retrieveAndAnswer }: JourneyProps) {
+export default function Journey({ journeySteps, setJourneySteps, setCurrentScreen, retrieveAndAnswer }: JourneyProps) {
   const [expandedStep, setExpandedStep] = useState<string | null>(null);
   const [explanations, setExplanations] = useState<Record<string, string>>({});
   const [loadingExplanation, setLoadingExplanation] = useState<string | null>(null);

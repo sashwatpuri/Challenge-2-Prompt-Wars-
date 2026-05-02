@@ -76,11 +76,10 @@ function App() {
 
         {currentScreen === 'journey' && (
           <ErrorBoundary fallbackMessage="The journey view encountered an error.">
-            <Journey 
+                      <Journey 
               journeySteps={journeySteps}
               setJourneySteps={setJourneySteps}
               setCurrentScreen={setCurrentScreen}
-              sendMessage={sendMessage}
               retrieveAndAnswer={retrieveAndAnswer}
             />
           </ErrorBoundary>
@@ -89,9 +88,8 @@ function App() {
         {currentScreen === 'evm' && (
           <ErrorBoundary fallbackMessage="The EVM Simulator encountered an error.">
             <Suspense fallback={<div className="flex-1 flex items-center justify-center">Loading Simulator...</div>}>
-              <EVMSimulator 
+                            <EVMSimulator 
                 setCurrentScreen={setCurrentScreen} 
-                sendMessage={sendMessage}
                 retrieveAndAnswer={retrieveAndAnswer}
               />
             </Suspense>

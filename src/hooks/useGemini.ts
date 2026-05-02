@@ -114,7 +114,7 @@ export function useGemini() {
   const historyRef = useRef<Content[]>([]);
   const { language } = useLanguage();
 
-  const sendMessage = useCallback(async (message: string, _isJourneyGeneration = false) => {
+  const sendMessage = useCallback(async (message: string) => {
     try {
       const historySnapshot = [...historyRef.current];
       const text = await callProxy({

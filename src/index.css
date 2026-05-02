@@ -7,6 +7,9 @@
   --color-saffron-vivid: #FF9933;
   --color-deep-green: #138808;
   --color-navy-blue: #000080;
+  /* Aliases used in BoothLocator, FormWizard, and Journey components */
+  --color-india-blue: #000080;
+  --color-india-green: #138808;
   --color-off-white: #FAFAF7;
 }
 

@@ -7,11 +7,10 @@ import { useLanguage } from '../context/LanguageContext';
 
 interface EVMSimulatorProps {
   setCurrentScreen: React.Dispatch<React.SetStateAction<Screen>>;
-  sendMessage: (msg: string, isJourney: boolean) => Promise<string>;
   retrieveAndAnswer: (query: string) => Promise<string>;
 }
 
-export default function EVMSimulator({ setCurrentScreen, sendMessage: _sendMessage, retrieveAndAnswer }: EVMSimulatorProps) {
+export default function EVMSimulator({ setCurrentScreen, retrieveAndAnswer }: EVMSimulatorProps) {
   const { t } = useLanguage();
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
   const [showVVPAT, setShowVVPAT] = useState(false);

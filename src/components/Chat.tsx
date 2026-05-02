@@ -15,7 +15,7 @@ interface ChatProps {
   setUserProfile: React.Dispatch<React.SetStateAction<UserProfile>>;
   setJourneySteps: React.Dispatch<React.SetStateAction<JourneyStep[]>>;
   setCurrentScreen: React.Dispatch<React.SetStateAction<Screen>>;
-  sendMessage: (msg: string, isJourney: boolean) => Promise<string>;
+  sendMessage: (msg: string) => Promise<string>;
   retrieveAndAnswer: (query: string) => Promise<string>;
 }
 
@@ -171,7 +171,7 @@ export default function Chat({
       setUserProfile(updatedProfile);
       setOnboardingStage(nextStage);
 
-      const aiResponse = await sendMessage(prompt, false);
+      const aiResponse = await sendMessage(prompt);
       setChatHistory([...newHistory, { id: Date.now().toString(), role: 'ai', text: aiResponse }]);
       
       if (usedVoice) {
