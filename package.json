@@ -21,8 +21,12 @@
     "@google/generative-ai": "^0.24.1",
     "@tailwindcss/vite": "^4.2.4",
     "@types/canvas-confetti": "^1.9.0",
+    "@vitejs/plugin-react": "^4.3.4",
     "canvas-confetti": "^1.9.4",
+    "cors": "^2.8.6",
     "dompurify": "^3.4.2",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
     "lucide-react": "^1.14.0",
     "marked": "^18.0.3",
     "pdf-lib": "^1.17.1",
@@ -31,10 +35,9 @@
     "react-speech-recognition": "^4.0.1",
     "regenerator-runtime": "^0.14.1",
     "tailwindcss": "^4.2.4",
-    "vite-plugin-pwa": "^0.21.1",
-    "vite": "^6.0.5",
     "typescript": "~5.7.2",
-    "@vitejs/plugin-react": "^4.3.4"
+    "vite": "^6.0.5",
+    "vite-plugin-pwa": "^0.21.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

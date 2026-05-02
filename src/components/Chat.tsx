@@ -47,6 +47,7 @@ export default function Chat({
 
   useEffect(() => {
     if (listening && transcript) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setInput(transcript);
     }
   }, [transcript, listening]);
@@ -143,7 +144,7 @@ export default function Chat({
       // We are in onboarding
       let nextStage: 'age' | 'voterId' | 'state' | 'done' = onboardingStage;
       let prompt = '';
-      let updatedProfile = { ...userProfile };
+      const updatedProfile = { ...userProfile };
 
       if (onboardingStage === 'age') {
         const extractedAge = parseInt(userText) || 18; // simplistic extraction

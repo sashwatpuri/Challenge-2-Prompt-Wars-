@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 
 export type SupportedLanguage = 'en' | 'hi' | 'ta' | 'mr';
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const UI_STRINGS = {
   en: {
     'app.title': 'VoteWise',
@@ -160,6 +161,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useLanguage() {
   const context = useContext(LanguageContext);
   if (context === undefined) {

@@ -131,13 +131,13 @@ export function useGemini() {
         { role: 'model', parts: [{ text: responseText }] }
       );
       return responseText;
-    } catch (error: any) {
-      console.warn('Gemini chat proxy error:', error);
-      if (error.status === 429) return 'Too many requests — please wait a moment.';
-      if (error.status === 503) return 'Servers busy — please try again shortly.';
+    } catch (error: unknown) {
+      const err = error as { status?: number };
+      console.warn('Gemini chat proxy error:', err);
+      if (err.status === 429) return 'Too many requests — please wait a moment.';
+      if (err.status === 503) return 'Servers busy — please try again shortly.';
       return 'Error connecting to AI. Please try again.';
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
 
   const retrieveAndAnswer = useCallback(async (userQuery: string): Promise<string> => {
@@ -181,13 +181,13 @@ Output nothing else.`;
       }
 
       return ensureComplete(text);
-    } catch (error: any) {
-      console.warn('Gemini RAG proxy error:', error);
-      if (error.status === 429) return 'Too many requests — please wait a moment.';
-      if (error.status === 503) return 'Servers busy — please try again shortly.';
+    } catch (error: unknown) {
+      const err = error as { status?: number };
+      console.warn('Gemini RAG proxy error:', err);
+      if (err.status === 429) return 'Too many requests — please wait a moment.';
+      if (err.status === 503) return 'Servers busy — please try again shortly.';
       return 'Error connecting to AI. Please try again.';
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
 
   const clearHistory = useCallback(() => { historyRef.current = []; }, []);
