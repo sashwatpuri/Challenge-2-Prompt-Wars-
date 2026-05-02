@@ -150,8 +150,8 @@ app.post('/api/generate-pdf', async (req, res) => {
 // Serve static frontend files
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// Catch-all to serve index.html for React Router
-app.get('*', (req, res) => {
+// Catch-all to serve index.html for React Router (Express 5 syntax)
+app.get('/{*splat}', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
