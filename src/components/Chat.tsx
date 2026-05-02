@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from 'react';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import { Send, MessageSquare, ChevronDown, Mic, MicOff } from 'lucide-react';
 import type { ChatMessage, UserProfile, JourneyStep, Screen } from '../App';
+import DOMPurify from 'dompurify';
+import { marked } from 'marked';
 import { useLanguage } from '../context/LanguageContext';
 
 interface ChatProps {
@@ -244,7 +246,14 @@ export default function Chat({
                   : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none shadow-sm'
               }`}
             >
-              {msg.text}
+              {msg.role === 'ai' ? (
+                <div 
+                  className="prose prose-sm max-w-none break-words"
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked.parse(msg.text) as string) }}
+                />
+              ) : (
+                msg.text
+              )}
             </div>
           </div>
         ))}

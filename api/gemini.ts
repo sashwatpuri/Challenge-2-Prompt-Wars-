@@ -2,9 +2,34 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 // This serverless function acts as a secure proxy for the Gemini API.
 // Keys are kept entirely server-side; the browser never sees them.
+// Simple in-memory rate limiting (per serverless instance)
+const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
+const RATE_LIMIT = 20; // 20 requests per minute
+const RATE_LIMIT_WINDOW = 60 * 1000;
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  // Rate limiting check
+  const ipHeader = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown';
+  const clientIp = Array.isArray(ipHeader) ? ipHeader[0] : ipHeader;
+
+  const now = Date.now();
+  const limitRecord = rateLimitMap.get(clientIp);
+
+  if (limitRecord) {
+    if (now - limitRecord.lastReset > RATE_LIMIT_WINDOW) {
+      rateLimitMap.set(clientIp, { count: 1, lastReset: now });
+    } else if (limitRecord.count >= RATE_LIMIT) {
+      console.warn(`[Gemini Proxy] Rate limit exceeded for IP: ${clientIp}`);
+      return res.status(429).json({ error: 'Too many requests. Please try again in a minute.' });
+    } else {
+      limitRecord.count++;
+    }
+  } else {
+    rateLimitMap.set(clientIp, { count: 1, lastReset: now });
   }
 
   const { keyType, model, systemInstruction, history, userMessage, retrievedContext } = req.body as {
