@@ -261,7 +261,7 @@ export default function Chat({
               onClick={() => setCurrentScreen('journey')}
               className="px-6 py-2.5 bg-[var(--color-saffron)] text-white font-medium rounded-full hover:bg-orange-600 transition-colors shadow-md flex items-center gap-2 animate-in fade-in slide-in-from-bottom-4 duration-500"
             >
-              View My Roadmap &rarr;
+              {t('viewRoadmap')} &rarr;
             </button>
           </div>
         )}

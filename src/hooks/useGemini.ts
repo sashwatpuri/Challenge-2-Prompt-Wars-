@@ -15,8 +15,9 @@ const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
   mr: 'Marathi',
 };
 
-const CHAT_MODEL = 'gemini-1.5-flash';
-const RAG_MODEL = 'gemini-1.5-flash';
+const CHAT_MODEL = 'gemini-2.5-flash';
+const RAG_MODEL = 'gemini-2.5-flash';
+
 
 const SYSTEM_INSTRUCTION = (lang: SupportedLanguage) => `
 You are VoteWise, India's friendly election guide.
@@ -29,6 +30,7 @@ Rules:
 - For Tamil: use common spoken Tamil, avoid archaic vocabulary.
 - For Marathi: use standard Marathi, accessible to rural and urban voters.
 - Guide the Indian citizen through their voting journey.
+- DIRECT ANSWER ONLY: Do not output your internal reasoning, constraints, or thought process.
 `;
 
 const RAG_INSTRUCTION = (lang: SupportedLanguage) =>
@@ -37,7 +39,8 @@ const RAG_INSTRUCTION = (lang: SupportedLanguage) =>
    ALWAYS respond in ${LANGUAGE_NAMES[lang]}.
    If context is insufficient, say the equivalent of
    "Please check eci.gov.in for more details." in ${LANGUAGE_NAMES[lang]}.
-   Keep answers under 3 sentences. Be warm and direct.`;
+   Keep answers under 3 sentences. Be warm and direct.
+   DIRECT ANSWER ONLY: Do not output your internal reasoning, rules, or thought process. Just provide the final answer.`;
 
 function ensureComplete(text: string): string {
   const trimmed = text.trim();
@@ -134,7 +137,7 @@ export function useGemini() {
       if (error.status === 503) return 'Servers busy — please try again shortly.';
       return 'Error connecting to AI. Please try again.';
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
 
   const retrieveAndAnswer = useCallback(async (userQuery: string): Promise<string> => {
@@ -154,6 +157,29 @@ export function useGemini() {
         userMessage: userQuery,
         retrievedContext: contextText,
       });
+
+      // Fact-Checker Agent: Verification pass
+      const FACT_CHECK_INSTRUCTION = `You are a strict fact-checker. 
+Read the CONTEXT and the ANSWER. 
+If the ANSWER contains any factual claims, numbers, or specific rules that are not explicitly supported by the CONTEXT, you must respond with exactly "REJECT".
+If all factual claims in the ANSWER are supported by the CONTEXT, respond with exactly "APPROVE".
+Output nothing else.`;
+
+      const verification = await callProxy({
+        keyType: 'rag',
+        model: CHAT_MODEL,
+        systemInstruction: FACT_CHECK_INSTRUCTION,
+        history: [],
+        userMessage: `CONTEXT:\n${contextText}\n\nANSWER:\n${text}`,
+      });
+
+      if (verification.trim().toUpperCase() !== 'APPROVE') {
+        console.warn('Fact check rejected the answer:', { answer: text, context: contextText });
+        return language === 'en'
+          ? "I'm not entirely sure based on my current knowledge. Please verify the details on the official Election Commission of India website (eci.gov.in)."
+          : "I am not completely sure. Please check eci.gov.in for more details.";
+      }
+
       return ensureComplete(text);
     } catch (error: any) {
       console.warn('Gemini RAG proxy error:', error);
@@ -161,7 +187,7 @@ export function useGemini() {
       if (error.status === 503) return 'Servers busy — please try again shortly.';
       return 'Error connecting to AI. Please try again.';
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
 
   const clearHistory = useCallback(() => { historyRef.current = []; }, []);

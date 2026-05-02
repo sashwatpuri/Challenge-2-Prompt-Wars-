@@ -3,6 +3,7 @@ import confetti from 'canvas-confetti';
 import { DUMMY_CANDIDATES } from '../constants/electionData';
 import type { Screen } from '../App';
 import { CheckCircle2, Sparkles, ArrowLeft } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface EVMSimulatorProps {
   setCurrentScreen: React.Dispatch<React.SetStateAction<Screen>>;
@@ -11,6 +12,7 @@ interface EVMSimulatorProps {
 }
 
 export default function EVMSimulator({ setCurrentScreen, sendMessage: _sendMessage, retrieveAndAnswer }: EVMSimulatorProps) {
+  const { t } = useLanguage();
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
   const [showVVPAT, setShowVVPAT] = useState(false);
   const [showSignature, setShowSignature] = useState(false);
@@ -53,14 +55,14 @@ export default function EVMSimulator({ setCurrentScreen, sendMessage: _sendMessa
           onClick={() => setCurrentScreen('journey')}
           className="text-sm font-medium text-gray-600 hover:text-gray-900 flex items-center gap-1"
         >
-          <ArrowLeft size={16} /> Back to Journey
+          <ArrowLeft size={16} /> {t('backJourney')}
         </button>
       </div>
 
       <div className="w-full max-w-lg mx-auto relative z-0 py-8 px-4 flex-1">
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-[var(--color-navy-blue)]">Electronic Voting Machine (Mock)</h2>
-          <p className="text-gray-600">Press the blue button next to your chosen candidate.</p>
+          <h2 className="text-2xl font-bold text-[var(--color-navy-blue)]">{t('evmMockTitle')}</h2>
+          <p className="text-gray-600">{t('evmMockInstruction')}</p>
         </div>
 
       {/* EVM Machine Frame */}
@@ -109,17 +111,17 @@ export default function EVMSimulator({ setCurrentScreen, sendMessage: _sendMessa
           <div className="max-w-2xl text-center space-y-8 animate-in slide-in-from-bottom-10 duration-1000 delay-500 fill-mode-both">
             <CheckCircle2 size={80} className="text-[var(--color-deep-green)] mx-auto" />
             <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
-              Your vote has been counted.
+              {t('evmVoteCounted')}
             </h1>
             <p className="text-xl md:text-2xl text-blue-100 font-light leading-relaxed">
-              In a real election, this moment is irreversible — and it belongs only to you.
+              {t('evmIrreversible')}
             </p>
             
             <div className="mt-12 p-8 bg-white rounded-3xl text-left shadow-2xl relative">
               <div className="absolute -top-6 left-8 bg-[var(--color-saffron)] text-white p-3 rounded-full shadow-lg">
                 <Sparkles size={24} />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4 ml-12">VoteWise Debrief</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-4 ml-12">{t('evmDebrief')}</h3>
               
               {loadingDebrief ? (
                 <div className="space-y-3 animate-pulse">
@@ -141,7 +143,7 @@ export default function EVMSimulator({ setCurrentScreen, sendMessage: _sendMessa
               }}
               className="mt-12 px-8 py-3 bg-transparent border-2 border-white text-white rounded-full font-bold hover:bg-white hover:text-[var(--color-navy-blue)] transition-colors"
             >
-              Back to Journey
+              {t('backJourney')}
             </button>
           </div>
         </div>

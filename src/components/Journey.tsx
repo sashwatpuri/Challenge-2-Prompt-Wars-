@@ -101,19 +101,19 @@ export default function Journey({ journeySteps, setJourneySteps, setCurrentScree
           onClick={() => setCurrentScreen('formWizard')}
           className="flex items-center justify-center gap-2 px-4 py-3 bg-white text-[var(--color-india-blue)] border-2 border-[var(--color-india-blue)] rounded-xl font-bold hover:bg-blue-50 transition-colors shadow-sm"
         >
-          <FileText size={18} /> Prepare Form 6
+          <FileText size={18} /> {t('journeyPrepareForm6')}
         </button>
         <button 
           onClick={() => setCurrentScreen('boothLocator')}
           className="flex items-center justify-center gap-2 px-4 py-3 bg-white text-[var(--color-saffron)] border-2 border-[var(--color-saffron)] rounded-xl font-bold hover:bg-orange-50 transition-colors shadow-sm"
         >
-          <MapPin size={18} /> Find My Booth
+          <MapPin size={18} /> {t('journeyFindBooth')}
         </button>
         <button 
           onClick={handleShare}
           className="flex items-center justify-center gap-2 px-4 py-3 bg-white text-[var(--color-india-green)] border-2 border-[var(--color-india-green)] rounded-xl font-bold hover:bg-green-50 transition-colors shadow-sm"
         >
-          <Share2 size={18} /> Share Roadmap
+          <Share2 size={18} /> {t('journeyShareRoadmap')}
         </button>
       </div>
 
