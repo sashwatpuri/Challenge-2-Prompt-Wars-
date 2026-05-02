@@ -1,15 +1,22 @@
-FROM node:20-alpine AS builder
+# Single-stage build - ensures devDependencies are available for tsc + vite build
+FROM node:20-slim
+
 WORKDIR /app
+
+# Copy package files
 COPY package*.json ./
-RUN npm ci
+
+# Install ALL dependencies (including devDeps needed for build)
+RUN npm install
+
+# Copy all source files
 COPY . .
+
+# Build the React app (generates /app/dist)
 RUN npm run build
 
-FROM node:20-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --omit=dev
-COPY --from=builder /app/dist ./dist
-COPY server.js ./
+# Expose Cloud Run's expected port
 EXPOSE 8080
+
+# Start the Express server
 CMD ["node", "server.js"]
