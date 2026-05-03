@@ -101,7 +101,7 @@ async function callProxy(payload: ProxyPayload): Promise<string> {
   const { keyType, model, systemInstruction, history, userMessage, retrievedContext } = payload;
 
   // Read env flags lazily at call time so vi.stubEnv() in tests takes effect
-  const IS_DEV      = import.meta.env.DEV === true || import.meta.env.DEV === 'true';
+  const IS_DEV      = String(import.meta.env.DEV) === 'true';
   const DEV_API_KEY = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
 
   // ── DEV mode: hit the Gemini REST API directly ─────────────────────────────
