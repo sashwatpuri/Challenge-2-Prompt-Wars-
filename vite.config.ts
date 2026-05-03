@@ -55,9 +55,36 @@ export default defineConfig({
     }),
   ],
   test: {
+    // Use globals (describe, it, expect, vi) without explicit imports
     globals: true,
-    environment: 'node',
+
+    // Default environment for component tests (renders into a virtual DOM)
+    environment: 'jsdom',
+
+    // Run before every test file — sets up jest-dom matchers and browser API stubs
+    setupFiles: ['./src/test/setup.ts'],
+
+    // Test file discovery pattern
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
+
+    // Code coverage (run with `npm run test:coverage`)
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov', 'html'],
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        'src/test/**',
+        'src/main.tsx',
+        'src/**/*.d.ts',
+      ],
+      // Coverage thresholds — build fails if these drop
+      thresholds: {
+        statements: 40,
+        branches: 35,
+        functions: 35,
+        lines: 40,
+      },
+    },
   },
   server: {
     proxy: {

@@ -79,9 +79,8 @@ function ensureComplete(text: string): string {
 }
 
 // ─── DEV vs PROD Routing ──────────────────────────────────────────────────────
-
-const IS_DEV      = import.meta.env.DEV;
-const DEV_API_KEY = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
+// NOTE: These are read lazily inside callProxy (not at module load time) so that
+// Vitest's vi.stubEnv() stubs are applied before the values are consumed.
 
 // Payload shape accepted by both the direct Gemini API and our proxy
 interface ProxyPayload {
@@ -100,6 +99,10 @@ interface ProxyPayload {
  */
 async function callProxy(payload: ProxyPayload): Promise<string> {
   const { keyType, model, systemInstruction, history, userMessage, retrievedContext } = payload;
+
+  // Read env flags lazily at call time so vi.stubEnv() in tests takes effect
+  const IS_DEV      = import.meta.env.DEV === true || import.meta.env.DEV === 'true';
+  const DEV_API_KEY = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
 
   // ── DEV mode: hit the Gemini REST API directly ─────────────────────────────
   if (IS_DEV) {

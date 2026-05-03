@@ -56,7 +56,9 @@ export function retrieveChunks(query: string, topK: number = 3): KnowledgeChunk[
 
   const topMatches = matches.slice(0, topK).map(m => m.chunk);
 
-  if (import.meta.env.DEV) {
+  // Only log in Vite dev mode — guard against import.meta.env being undefined in test environments
+  const isDev = typeof import.meta !== 'undefined' && import.meta.env?.DEV;
+  if (isDev) {
     console.log('[RAG Retriever] Query:', query);
     console.log('[RAG Retriever] Retrieved IDs:', topMatches.map(c => c.id));
   }
