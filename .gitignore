@@ -29,6 +29,9 @@ node_modules
 # Vercel
 .vercel
 
+# GCP Credentials
+gcp-voice-key.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

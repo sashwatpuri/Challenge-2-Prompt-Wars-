@@ -1,7 +1,6 @@
 import 'regenerator-runtime/runtime';
 import { useState, useEffect, useRef } from 'react';
-import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
-import { Send, MessageSquare, ChevronDown, Mic, MicOff } from 'lucide-react';
+import { Send, MessageSquare, ChevronDown, Mic, MicOff, Volume2 } from 'lucide-react';
 import type { ChatMessage, UserProfile, JourneyStep, Screen } from '../App';
 import DOMPurify from 'dompurify';
 import { marked } from 'marked';
@@ -38,19 +37,77 @@ export default function Chat({
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const {
-    transcript,
-    listening,
-    resetTranscript,
-    browserSupportsSpeechRecognition
-  } = useSpeechRecognition();
+  const [listening, setListening] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
-  useEffect(() => {
-    if (listening && transcript) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setInput(transcript);
+  const startListening = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = async () => {
+          const base64Audio = (reader.result as string).split(',')[1];
+          try {
+            const res = await fetch('/api/speech-to-text', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ audioContent: base64Audio, languageCode: 'en-IN' })
+            });
+            const data = await res.json();
+            if (data.text) {
+               setInput(data.text);
+               setUsedVoice(true);
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        };
+      };
+
+      mediaRecorder.start();
+      setListening(true);
+    } catch (error) {
+      console.error("Error accessing microphone", error);
     }
-  }, [transcript, listening]);
+  };
+
+  const stopListening = () => {
+    if (mediaRecorderRef.current && listening) {
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      setListening(false);
+    }
+  };
+
+  const playAudio = async (text: string) => {
+    try {
+      const response = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, languageCode: 'en-IN' })
+      });
+      if (!response.ok) throw new Error('TTS failed');
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audio.play();
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   // Onboarding internal state
   const [onboardingStage, setOnboardingStage] = useState<'age' | 'voterId' | 'state' | 'done'>(userProfile.onboardingComplete ? 'done' : 'age');
@@ -119,9 +176,8 @@ export default function Chat({
     if (!input.trim()) return;
     const userText = input.trim();
     setInput('');
-    resetTranscript();
     if (listening) {
-      SpeechRecognition.stopListening();
+      stopListening();
     }
     
     const newHistory = [...chatHistory, { id: Date.now().toString(), role: 'user' as const, text: userText }];
@@ -176,8 +232,7 @@ export default function Chat({
       setChatHistory([...newHistory, { id: Date.now().toString(), role: 'ai', text: aiResponse }]);
       
       if (usedVoice) {
-        const utterance = new SpeechSynthesisUtterance(aiResponse);
-        window.speechSynthesis.speak(utterance);
+        playAudio(aiResponse);
         setUsedVoice(false);
       }
       
@@ -192,8 +247,7 @@ export default function Chat({
       setChatHistory([...newHistory, { id: Date.now().toString(), role: 'ai', text: aiResponse }]);
       
       if (usedVoice) {
-        const utterance = new SpeechSynthesisUtterance(aiResponse);
-        window.speechSynthesis.speak(utterance);
+        playAudio(aiResponse);
         setUsedVoice(false);
       }
       setIsTyping(false);
@@ -244,9 +298,18 @@ export default function Chat({
               className={`max-w-[80%] p-3 rounded-2xl ${
                 msg.role === 'user' 
                   ? 'bg-[var(--color-saffron)] text-white rounded-br-none' 
-                  : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none shadow-sm'
+                  : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none shadow-sm relative group'
               }`}
             >
+              {msg.role === 'ai' && (
+                <button
+                  onClick={() => playAudio(msg.text)}
+                  className="absolute -right-8 top-2 p-1.5 text-gray-400 hover:text-[var(--color-india-blue)] opacity-0 group-hover:opacity-100 transition-opacity rounded-full hover:bg-gray-100"
+                  title="Listen to message"
+                >
+                  <Volume2 size={16} />
+                </button>
+              )}
               {msg.role === 'ai' ? (
                 <div 
                   className="prose prose-sm max-w-none break-words"
@@ -280,16 +343,15 @@ export default function Chat({
 
       {/* Input */}
       <div className="p-4 bg-white border-t border-gray-100 flex gap-2 items-center">
-        {browserSupportsSpeechRecognition && (
+        {navigator.mediaDevices && navigator.mediaDevices.getUserMedia && (
           <button
             onClick={() => {
               if (listening) {
-                SpeechRecognition.stopListening();
+                stopListening();
               } else {
                 setUsedVoice(true);
-                resetTranscript();
                 setInput('');
-                SpeechRecognition.startListening({ continuous: true });
+                startListening();
               }
             }}
             className={`p-2 rounded-full transition-colors ${

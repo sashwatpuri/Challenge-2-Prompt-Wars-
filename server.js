@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import textToSpeech from '@google-cloud/text-to-speech';
+import speech from '@google-cloud/speech';
 
 dotenv.config();
 
@@ -14,7 +16,7 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 
 // API: Gemini Proxy
 const rateLimitMap = new Map();
@@ -144,6 +146,94 @@ app.post('/api/generate-pdf', async (req, res) => {
   } catch (error) {
     console.error('Error generating PDF:', error);
     return res.status(500).json({ error: 'Failed to generate PDF' });
+  }
+});
+
+// API: Booth Locator
+app.post('/api/booth-locator', async (req, res) => {
+  const { address } = req.body;
+  // Mock logic to simulate finding booths nearby based on an address
+  const lat = 28.6139;
+  const lng = 77.2090;
+  
+  return res.status(200).json({
+    booths: [
+      {
+        id: 1,
+        name: "Govt Boys Senior Secondary School",
+        lat: lat + (Math.random() - 0.5) * 0.02,
+        lng: lng + (Math.random() - 0.5) * 0.02,
+        address: "New Delhi, Delhi",
+        distance: "1.2 km"
+      },
+      {
+        id: 2,
+        name: "Primary Health Center",
+        lat: lat + (Math.random() - 0.5) * 0.02,
+        lng: lng + (Math.random() - 0.5) * 0.02,
+        address: "New Delhi, Delhi",
+        distance: "2.5 km"
+      }
+    ]
+  });
+});
+
+// API: Text-to-Speech
+app.post('/api/tts', async (req, res) => {
+  const { text, languageCode } = req.body;
+  if (!text) return res.status(400).json({ error: 'Text is required' });
+  
+  try {
+    const client = new textToSpeech.TextToSpeechClient();
+    const request = {
+      input: { text: text },
+      voice: { 
+        languageCode: languageCode || 'en-IN', 
+        name: languageCode === 'hi-IN' ? 'hi-IN-Neural2-A' : 'en-IN-Neural2-A' 
+      },
+      audioConfig: { audioEncoding: 'MP3' },
+    };
+    
+    const [response] = await client.synthesizeSpeech(request);
+    res.setHeader('Content-Type', 'audio/mp3');
+    res.send(Buffer.from(response.audioContent, 'binary'));
+  } catch (error) {
+    console.error('Error generating speech:', error);
+    res.status(500).json({ error: 'Failed to generate speech' });
+  }
+});
+
+// API: Speech-to-Text
+app.post('/api/speech-to-text', async (req, res) => {
+  const { audioContent, languageCode } = req.body;
+  if (!audioContent) return res.status(400).json({ error: 'Audio content is required' });
+  
+  try {
+    const client = new speech.SpeechClient();
+    const audio = {
+      content: audioContent,
+    };
+    const config = {
+      encoding: 'WEBM_OPUS',
+      // Allow Google to automatically detect the sample rate if possible, 
+      // otherwise WEBM_OPUS requires a sample rate. Browsers usually use 48000.
+      sampleRateHertz: 48000,
+      languageCode: languageCode || 'en-IN',
+    };
+    const request = {
+      audio: audio,
+      config: config,
+    };
+    
+    const [response] = await client.recognize(request);
+    const transcription = response.results
+      .map(result => result.alternatives[0].transcript)
+      .join('\n');
+      
+    res.json({ text: transcription });
+  } catch (error) {
+    console.error('Error transcribing speech:', error);
+    res.status(500).json({ error: 'Failed to transcribe speech' });
   }
 });
 
