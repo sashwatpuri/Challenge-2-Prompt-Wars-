@@ -1,8 +1,29 @@
+/**
+ * ErrorBoundary.tsx — Top-Level Error Boundary
+ *
+ * A class-based React error boundary that catches unhandled render errors
+ * in any child component tree. When an error is caught it displays a styled
+ * fallback UI with a "Reload Page" action.
+ *
+ * Usage:
+ *   <ErrorBoundary fallbackMessage="Something went wrong in this section.">
+ *     <MyComponent />
+ *   </ErrorBoundary>
+ *
+ * Notes:
+ *  - Must be a class component — React doesn't yet support error boundaries in functions.
+ *  - Wraps individual sections rather than the whole app so one broken screen
+ *    doesn't take down the entire UI.
+ */
+
 import { Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
 
+// ─── Props & State Types ──────────────────────────────────────────────────────
+
 interface Props {
   children: ReactNode;
+  /** Custom message shown in the fallback UI. Falls back to a generic string. */
   fallbackMessage?: string;
 }
 
@@ -11,18 +32,22 @@ interface State {
   error: Error | null;
 }
 
+// ─── Component ────────────────────────────────────────────────────────────────
+
 export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
-    error: null
+    error: null,
   };
 
+  /** Called by React when a descendant throws during rendering. */
   public static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
+  /** Ideal place to log errors to an external service (e.g. Sentry, Cloud Logging). */
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Uncaught error:', error, errorInfo);
+    console.error('[ErrorBoundary] Uncaught error:', error, errorInfo);
   }
 
   public render() {

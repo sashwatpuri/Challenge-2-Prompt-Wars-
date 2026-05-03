@@ -1,3 +1,16 @@
+/**
+ * EVMSimulator.tsx — Electronic Voting Machine Simulator
+ *
+ * Gives users a realistic hands-on walkthrough of the Indian voting process:
+ *  1. User selects a candidate and presses the blue vote button.
+ *  2. The VVPAT window (right-side panel) animates a paper slip dropping down
+ *     for 3 seconds, mirroring the real EVM experience.
+ *  3. A full-screen "Signature Moment" overlay congratulates the user and
+ *     displays an AI-generated explanation of EVM security and ballot secrecy.
+ *
+ * Candidates come from constants/electionData.ts (dummy data, not real candidates).
+ */
+
 import { useState } from 'react';
 import confetti from 'canvas-confetti';
 import { DUMMY_CANDIDATES } from '../constants/electionData';
@@ -5,52 +18,87 @@ import type { Screen } from '../App';
 import { CheckCircle2, Sparkles, ArrowLeft } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
+// ─── Props ────────────────────────────────────────────────────────────────────
+
 interface EVMSimulatorProps {
   setCurrentScreen: React.Dispatch<React.SetStateAction<Screen>>;
   retrieveAndAnswer: (query: string) => Promise<string>;
 }
 
+// ─── VVPAT Animation ─────────────────────────────────────────────────────────
+
+/**
+ * Inline keyframe animation for the VVPAT paper slip.
+ * Slides in from the top, holds for a moment, then slides out at the bottom —
+ * exactly mimicking how a real VVPAT slip behaves.
+ */
+const VVPAT_ANIMATION = `
+  @keyframes slideDown {
+    0%   { transform: translateY(-100%); }
+    20%  { transform: translateY(0); }
+    80%  { transform: translateY(0); }
+    100% { transform: translateY(100%); opacity: 0; }
+  }
+`;
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
 export default function EVMSimulator({ setCurrentScreen, retrieveAndAnswer }: EVMSimulatorProps) {
   const { t } = useLanguage();
-  const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
-  const [showVVPAT, setShowVVPAT] = useState(false);
-  const [showSignature, setShowSignature] = useState(false);
-  const [aiDebrief, setAiDebrief] = useState<string | null>(null);
-  const [loadingDebrief, setLoadingDebrief] = useState(false);
 
+  const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
+  const [showVVPAT, setShowVVPAT]                 = useState(false);
+  const [showSignature, setShowSignature]         = useState(false);
+  const [aiDebrief, setAiDebrief]                 = useState<string | null>(null);
+  const [loadingDebrief, setLoadingDebrief]       = useState(false);
+
+  // Resolve the voted candidate object for display in the VVPAT slip
+  const votedCandidate = DUMMY_CANDIDATES.find(c => c.id === selectedCandidate);
+
+  // ─── Handlers ────────────────────────────────────────────────────────────
+
+  /**
+   * Simulates pressing the EVM button:
+   *  1. Shows the VVPAT slip animation for 3 seconds.
+   *  2. Triggers confetti in Indian flag colours.
+   *  3. Shows the Signature Moment overlay.
+   *  4. Fetches an AI debrief about EVM security in the background.
+   */
   const handleVote = (id: string) => {
     setSelectedCandidate(id);
     setShowVVPAT(true);
 
-    // VVPAT shows for 3 seconds, then Signature Moment
     setTimeout(() => {
       setShowVVPAT(false);
       setShowSignature(true);
-      
+
+      // Indian flag colour confetti
       confetti({
         particleCount: 150,
         spread: 80,
         origin: { y: 0.6 },
-        colors: ['#FF9933', '#FFFFFF', '#138808', '#000080'] // Indian flag colors
+        colors: ['#FF9933', '#FFFFFF', '#138808', '#000080'],
       });
-      
-      // Fetch AI Debrief in background
+
+      // Fetch AI explanation while the overlay is shown
       setLoadingDebrief(true);
-      retrieveAndAnswer("What happens inside an EVM, is the ballot secret, and what does a VVPAT slip do?")
-        .then(res => {
-          setAiDebrief(res);
-          setLoadingDebrief(false);
-        });
-        
-    }, 3000);
+      retrieveAndAnswer(
+        'What happens inside an EVM, is the ballot secret, and what does a VVPAT slip do?'
+      ).then(res => {
+        setAiDebrief(res);
+        setLoadingDebrief(false);
+      });
+
+    }, 3000); // VVPAT display duration
   };
 
-  const votedCandidate = DUMMY_CANDIDATES.find(c => c.id === selectedCandidate);
+  // ─── Render ──────────────────────────────────────────────────────────────
 
   return (
     <div className="fixed inset-0 z-50 bg-gray-50 flex flex-col overflow-y-auto">
+      {/* Back navigation */}
       <div className="p-4 bg-white shadow-sm flex items-center">
-        <button 
+        <button
           onClick={() => setCurrentScreen('journey')}
           className="text-sm font-medium text-gray-600 hover:text-gray-900 flex items-center gap-1"
         >
@@ -59,104 +107,110 @@ export default function EVMSimulator({ setCurrentScreen, retrieveAndAnswer }: EV
       </div>
 
       <div className="w-full max-w-lg mx-auto relative z-0 py-8 px-4 flex-1">
+        {/* Header */}
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-[var(--color-navy-blue)]">{t('evmMockTitle')}</h2>
           <p className="text-gray-600">{t('evmMockInstruction')}</p>
         </div>
 
-      {/* EVM Machine Frame */}
-      <div className="bg-gray-100 p-6 rounded-3xl border-[12px] border-[var(--color-navy-blue)] shadow-2xl relative">
-        {/* VVPAT Window (CSS Animation) */}
-        <div className="absolute -right-24 top-10 w-20 h-32 bg-gray-800 border-4 border-gray-600 rounded-lg overflow-hidden flex flex-col shadow-xl">
-          <div className="bg-black text-white text-[8px] text-center p-1 border-b border-gray-600">VVPAT</div>
-          <div className="flex-1 relative bg-gray-900 overflow-hidden">
-            {showVVPAT && (
-              <div className="absolute top-0 left-1 right-1 bg-white h-24 flex flex-col items-center justify-center animate-[slideDown_3s_ease-in-out_forwards]">
-                <span className="text-2xl">{votedCandidate?.symbol}</span>
-                <span className="text-[10px] font-bold text-center mt-1 leading-tight">{votedCandidate?.name}</span>
-              </div>
-            )}
-          </div>
-        </div>
+        {/* ── EVM Machine Frame ── */}
+        <div className="bg-gray-100 p-6 rounded-3xl border-[12px] border-[var(--color-navy-blue)] shadow-2xl relative">
 
-        <div className="space-y-3">
-          {DUMMY_CANDIDATES.map((candidate) => (
-            <div key={candidate.id} className="flex items-center gap-4 bg-white p-3 rounded-lg border border-gray-300 shadow-inner">
-              <div className="w-12 h-12 bg-gray-50 border border-gray-200 rounded flex items-center justify-center text-2xl">
-                {candidate.symbol}
-              </div>
-              <div className="flex-1">
-                <h4 className="font-bold text-gray-900">{candidate.name}</h4>
-                <p className="text-xs text-gray-500 uppercase font-semibold">{candidate.party}</p>
-              </div>
-              <button 
-                onClick={() => handleVote(candidate.id)}
-                disabled={selectedCandidate !== null}
-                className={`w-10 h-10 rounded-full border-4 border-gray-300 shadow-md transition-all active:scale-95 ${
-                  selectedCandidate === candidate.id 
-                    ? 'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.8)]' 
-                    : 'bg-blue-600 hover:bg-blue-700'
-                }`}
-                aria-label={`Vote for ${candidate.name}`}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Signature Moment Overlay */}
-      {showSignature && (
-        <div className="fixed inset-0 z-50 bg-[var(--color-navy-blue)] flex flex-col items-center justify-center p-6 animate-in fade-in duration-1000">
-          <div className="max-w-2xl text-center space-y-8 animate-in slide-in-from-bottom-10 duration-1000 delay-500 fill-mode-both">
-            <CheckCircle2 size={80} className="text-[var(--color-deep-green)] mx-auto" />
-            <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
-              {t('evmVoteCounted')}
-            </h1>
-            <p className="text-xl md:text-2xl text-blue-100 font-light leading-relaxed">
-              {t('evmIrreversible')}
-            </p>
-            
-            <div className="mt-12 p-8 bg-white rounded-3xl text-left shadow-2xl relative">
-              <div className="absolute -top-6 left-8 bg-[var(--color-saffron)] text-white p-3 rounded-full shadow-lg">
-                <Sparkles size={24} />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4 ml-12">{t('evmDebrief')}</h3>
-              
-              {loadingDebrief ? (
-                <div className="space-y-3 animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-full"></div>
-                  <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-                </div>
-              ) : (
-                <div className="text-gray-700 space-y-4 leading-relaxed whitespace-pre-wrap">
-                  {aiDebrief}
+          {/* VVPAT Window — displayed to the right of the EVM */}
+          <div className="absolute -right-24 top-10 w-20 h-32 bg-gray-800 border-4 border-gray-600 rounded-lg overflow-hidden flex flex-col shadow-xl">
+            <div className="bg-black text-white text-[8px] text-center p-1 border-b border-gray-600">VVPAT</div>
+            <div className="flex-1 relative bg-gray-900 overflow-hidden">
+              {/* Slip animates down while showVVPAT is true */}
+              {showVVPAT && (
+                <div className="absolute top-0 left-1 right-1 bg-white h-24 flex flex-col items-center justify-center animate-[slideDown_3s_ease-in-out_forwards]">
+                  <span className="text-2xl">{votedCandidate?.symbol}</span>
+                  <span className="text-[10px] font-bold text-center mt-1 leading-tight">{votedCandidate?.name}</span>
                 </div>
               )}
             </div>
+          </div>
 
-            <button 
-              onClick={() => {
-                setShowSignature(false);
-                setCurrentScreen('journey');
-              }}
-              className="mt-12 px-8 py-3 bg-transparent border-2 border-white text-white rounded-full font-bold hover:bg-white hover:text-[var(--color-navy-blue)] transition-colors"
-            >
-              {t('backJourney')}
-            </button>
+          {/* Candidate buttons */}
+          <div className="space-y-3">
+            {DUMMY_CANDIDATES.map((candidate) => (
+              <div
+                key={candidate.id}
+                className="flex items-center gap-4 bg-white p-3 rounded-lg border border-gray-300 shadow-inner"
+              >
+                {/* Candidate symbol */}
+                <div className="w-12 h-12 bg-gray-50 border border-gray-200 rounded flex items-center justify-center text-2xl">
+                  {candidate.symbol}
+                </div>
+
+                {/* Candidate info */}
+                <div className="flex-1">
+                  <h4 className="font-bold text-gray-900">{candidate.name}</h4>
+                  <p className="text-xs text-gray-500 uppercase font-semibold">{candidate.party}</p>
+                </div>
+
+                {/* Vote button — disabled after a vote is cast */}
+                <button
+                  onClick={() => handleVote(candidate.id)}
+                  disabled={selectedCandidate !== null}
+                  className={`w-10 h-10 rounded-full border-4 border-gray-300 shadow-md transition-all active:scale-95 ${
+                    selectedCandidate === candidate.id
+                      ? 'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.8)]'
+                      : 'bg-blue-600 hover:bg-blue-700'
+                  }`}
+                  aria-label={`Vote for ${candidate.name}`}
+                />
+              </div>
+            ))}
           </div>
         </div>
-      )}
 
-      {/* Global CSS for VVPAT Animation */}
-      <style>{`
-        @keyframes slideDown {
-          0% { transform: translateY(-100%); }
-          20% { transform: translateY(0); }
-          80% { transform: translateY(0); }
-          100% { transform: translateY(100%); opacity: 0; }
-        }
-      `}</style>
+        {/* ── Signature Moment Overlay ── */}
+        {showSignature && (
+          <div className="fixed inset-0 z-50 bg-[var(--color-navy-blue)] flex flex-col items-center justify-center p-6 animate-in fade-in duration-1000">
+            <div className="max-w-2xl text-center space-y-8 animate-in slide-in-from-bottom-10 duration-1000 delay-500 fill-mode-both">
+              <CheckCircle2 size={80} className="text-[var(--color-deep-green)] mx-auto" />
+
+              <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
+                {t('evmVoteCounted')}
+              </h1>
+              <p className="text-xl md:text-2xl text-blue-100 font-light leading-relaxed">
+                {t('evmIrreversible')}
+              </p>
+
+              {/* AI Debrief Card */}
+              <div className="mt-12 p-8 bg-white rounded-3xl text-left shadow-2xl relative">
+                <div className="absolute -top-6 left-8 bg-[var(--color-saffron)] text-white p-3 rounded-full shadow-lg">
+                  <Sparkles size={24} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-4 ml-12">{t('evmDebrief')}</h3>
+
+                {loadingDebrief ? (
+                  // Skeleton loader while the AI response is being fetched
+                  <div className="space-y-3 animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-3/4" />
+                    <div className="h-4 bg-gray-200 rounded w-full" />
+                    <div className="h-4 bg-gray-200 rounded w-5/6" />
+                  </div>
+                ) : (
+                  <div className="text-gray-700 space-y-4 leading-relaxed whitespace-pre-wrap">
+                    {aiDebrief}
+                  </div>
+                )}
+              </div>
+
+              {/* Return to Journey */}
+              <button
+                onClick={() => { setShowSignature(false); setCurrentScreen('journey'); }}
+                className="mt-12 px-8 py-3 bg-transparent border-2 border-white text-white rounded-full font-bold hover:bg-white hover:text-[var(--color-navy-blue)] transition-colors"
+              >
+                {t('backJourney')}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Inject VVPAT keyframe animation into the page */}
+        <style>{VVPAT_ANIMATION}</style>
       </div>
     </div>
   );
